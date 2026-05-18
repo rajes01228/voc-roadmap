@@ -3,32 +3,1480 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VOC Roadmap Control Center</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Core & Common VOC Implementation Roadmap</title>
+  
+  <!-- Tailwind CSS JIT CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React and ReactDOM CDNs -->
+  <script>
+    // Configure Tailwind to natively support your 16-month grid layout columns
+    tailwind.config = {
+      theme: {
+        extend: {
+          gridTemplateColumns: {
+            '16': 'repeat(16, minmax(0, 1fr))',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 Production CDNs -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <!-- Babel CDN (Compiles JSX in the browser) -->
+  
+  <!-- Babel Standalone (Compiles JSX inside the browser) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body class="bg-slate-50">
 
-  <!-- React Entry Point Container -->
+  <!-- Custom Fallback Styles -->
+  <style>
+    /* Ensure grid layout fallback helper behaves on all screen resolutions */
+    .grid-cols-16 {
+      display: grid !important;
+      grid-template-columns: repeat(16, minmax(0, 1fr)) !important;
+    }
+    /* Simple CSS animations for dashboard interactions */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- React Target Mount Point -->
   <div id="root"></div>
 
-  <!-- Your Dashboard React Code -->
+  <!-- React App Script Compiled by Babel -->
   <script type="text/babel">
-    // 1. COPY & PASTE YOUR ENTIRE App.jsx CODE HERE 
-    // (Ensure you replace any 'import' or 'export' lines at the very top/bottom, 
-    // as the browser CDNs handle React imports globally!)
-    
     const { useState, useMemo } = React;
 
-    // ... [Paste the Icon component and App component code from App.jsx here] ...
+    // Custom SVG-based icon helper
+    const Icon = ({ name, className = "w-5 h-5", strokeWidth = 2 }) => {
+      const icons = {
+        dashboard: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+        ),
+        list: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 17.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+        ),
+        calendar: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+        ),
+        warning: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        ),
+        check: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        ),
+        clock: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        ),
+        alert: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        ),
+        plus: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        ),
+        edit: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+        ),
+        trash: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+        ),
+        info: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 11.201 1.258l-.133.067a.75.75 0 01-1.025-.333l-.041-.02a.75.75 0 01.332-1.018z M12 18a6 6 0 100-12 6 6 0 000 12z" />
+        ),
+        user: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        ),
+        download: (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        )
+      };
 
-    // 2. Render the App component into the root div
-    const root = ReactDOM.createRoot(document.getElementById('root'));
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+          {icons[name] || <path d="M12 9v6m3-3H9" />}
+        </svg>
+      );
+    };
+
+    function App() {
+      // 16 Months definitions representing columns P to AE
+      const months = [
+        'Apr 26', 'May 26', 'Jun 26', 'Jul 26', 'Aug 26', 'Sep 26', 'Oct 26', 'Nov 26', 
+        'Dec 26', 'Jan 27', 'Feb 27', 'Mar 27', 'Apr 27', 'May 27', 'Jun 27', 'Jul 27'
+      ];
+
+      const currentMonthIndex = 1; // May 2026
+
+      const [tasks, setTasks] = useState([
+        {
+          id: "PM-01",
+          workstream: "Project Management",
+          name: "Vendor RFP & Contract Sign-off",
+          owner: "Project Manager",
+          status: "Complete",
+          priority: "Critical",
+          complete: 100,
+          dependencies: "None",
+          start: 0,
+          end: 1,
+          phase: "Mobilization",
+          notes: "Contract fully finalized with Accenture & Qualtrics."
+        },
+        {
+          id: "PM-02",
+          workstream: "Project Management",
+          name: "Master Project Plan Validation",
+          owner: "Project Manager",
+          status: "In Progress",
+          priority: "High",
+          complete: 60,
+          dependencies: "PM-01",
+          start: 1,
+          end: 2,
+          phase: "Mobilization",
+          notes: "V0.1 schedule under comprehensive review with stakeholders."
+        },
+        {
+          id: "PM-03",
+          workstream: "Project Management",
+          name: "Jira & Confluence Setup",
+          owner: "Project Manager",
+          status: "In Progress",
+          priority: "Medium",
+          complete: 40,
+          dependencies: "PM-02",
+          start: 1,
+          end: 2,
+          phase: "Mobilization",
+          notes: "Setting up work boards and documentation repositories."
+        },
+        {
+          id: "AR-01",
+          workstream: "Architecture & Req",
+          name: "SSO Integration Blueprint",
+          owner: "System Architect",
+          status: "Complete",
+          priority: "Critical",
+          complete: 100,
+          dependencies: "None",
+          start: 0,
+          end: 1,
+          phase: "Architecture",
+          notes: "SSO protocols validated and mapped successfully."
+        },
+        {
+          id: "AR-02",
+          workstream: "Architecture & Req",
+          name: "Data Wishlist Workshop (RDI)",
+          owner: "Balaji",
+          status: "In Progress",
+          priority: "High",
+          complete: 80,
+          dependencies: "PM-02",
+          start: 1,
+          end: 1,
+          phase: "Architecture",
+          notes: "Key alignment session scheduled for the week of May 18."
+        },
+        {
+          id: "AR-03",
+          workstream: "Architecture & Req",
+          name: "System Architecture Blueprint",
+          owner: "System Architect",
+          status: "In Progress",
+          priority: "High",
+          complete: 20,
+          dependencies: "AR-02",
+          start: 1,
+          end: 3,
+          phase: "Architecture",
+          notes: "Awaiting input from the RDI data wishlist results."
+        },
+        {
+          id: "INT-01",
+          workstream: "Integrations Setup",
+          name: "Customer Master Inbound Feed Setup",
+          owner: "IT Lead",
+          status: "Not Started",
+          priority: "Critical",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 3,
+          end: 4,
+          phase: "Integrations",
+          notes: "Blocked until system architecture blueprint is finalized."
+        },
+        {
+          id: "INT-02",
+          workstream: "Integrations Setup",
+          name: "Consent & Preference Store Integration",
+          owner: "IT Lead",
+          status: "Not Started",
+          priority: "High",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 3,
+          end: 4,
+          phase: "Integrations",
+          notes: "Requires exact alignment on global data consent schemas."
+        },
+        {
+          id: "INT-03",
+          workstream: "Integrations Setup",
+          name: "Text Sentinel Outbound Integration",
+          owner: "IT Lead",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 4,
+          end: 5,
+          phase: "Integrations",
+          notes: "Requires standard data compliance verification."
+        },
+        {
+          id: "US-01",
+          workstream: "Use Case Deploys",
+          name: "Relationship Survey Requirement Sign-off",
+          owner: "Business Lead",
+          status: "In Progress",
+          priority: "High",
+          complete: 50,
+          dependencies: "None",
+          start: 1,
+          end: 2,
+          phase: "Relationship",
+          notes: "Involves detailed negotiations with regional operational heads."
+        },
+        {
+          id: "US-02",
+          workstream: "Use Case Deploys",
+          name: "Relationship Survey Configuration",
+          owner: "Qualtrics Dev",
+          status: "Not Started",
+          priority: "High",
+          complete: 0,
+          dependencies: "US-01",
+          start: 3,
+          end: 5,
+          phase: "Relationship",
+          notes: "Will commence configuration in a sandbox environment."
+        },
+        {
+          id: "US-03",
+          workstream: "Use Case Deploys",
+          name: "Relationship Survey Launch (Wave 1)",
+          owner: "Business Lead",
+          status: "Not Started",
+          priority: "High",
+          complete: 0,
+          dependencies: "US-02",
+          start: 7,
+          end: 7,
+          phase: "Relationship",
+          notes: "Scheduled for November 2026 launch wave."
+        },
+        {
+          id: "US-04",
+          workstream: "Use Case Deploys",
+          name: "Post-Visit Survey Configuration",
+          owner: "Qualtrics Dev",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 3,
+          end: 4,
+          phase: "Transactional",
+          notes: "Will leverage the main integrations blueprint."
+        },
+        {
+          id: "US-05",
+          workstream: "Use Case Deploys",
+          name: "Post-Visit Survey Integration & QA",
+          owner: "IT Lead",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "US-04",
+          start: 5,
+          end: 6,
+          phase: "Transactional",
+          notes: "Comprehensive testing window for QA validations."
+        },
+        {
+          id: "US-06",
+          workstream: "Use Case Deploys",
+          name: "Post-Visit Survey Launch",
+          owner: "Business Lead",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "US-05",
+          start: 7,
+          end: 7,
+          phase: "Transactional",
+          notes: "Aligning launch timeline with regional market calendars."
+        },
+        {
+          id: "US-07",
+          workstream: "Use Case Deploys",
+          name: "Post-GMCL Survey Setup & Launch",
+          owner: "Qualtrics Dev",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 5,
+          end: 7,
+          phase: "Transactional",
+          notes: "Coordinating dependencies directly with the GMCL operations team."
+        },
+        {
+          id: "US-08",
+          workstream: "Use Case Deploys",
+          name: "Web Survey Provisioning (AEM/Sapphire)",
+          owner: "Sapphire Team",
+          status: "Not Started",
+          priority: "Critical",
+          complete: 0,
+          dependencies: "AR-01",
+          start: 3,
+          end: 7,
+          phase: "Transactional",
+          notes: "Technical requirement for rendering native AEM wrapper assets."
+        },
+        {
+          id: "US-09",
+          workstream: "Use Case Deploys",
+          name: "Post-Event Survey Setup (MECE Dependent)",
+          owner: "Ecosystem PO",
+          status: "Blocked",
+          priority: "Critical",
+          complete: 0,
+          dependencies: "None",
+          start: 8,
+          end: 9,
+          phase: "Transactional",
+          notes: "MECE system availability delayed until Q4 2026. Kept on legacy manually."
+        },
+        {
+          id: "US-10",
+          workstream: "Use Case Deploys",
+          name: "Supply Chain Survey Configuration",
+          owner: "Qualtrics Dev",
+          status: "Not Started",
+          priority: "Low",
+          complete: 0,
+          dependencies: "AR-03",
+          start: 5,
+          end: 7,
+          phase: "Transactional",
+          notes: "Post-launch low-priority stream."
+        },
+        {
+          id: "OPS-01",
+          workstream: "Operations & BAU",
+          name: "Sapphire Instance Verification",
+          owner: "IT QA Lead",
+          status: "Not Started",
+          priority: "High",
+          complete: 0,
+          dependencies: "US-08",
+          start: 8,
+          end: 9,
+          phase: "Ops & BAU",
+          notes: "Instance-level security check prior to general sign-off."
+        },
+        {
+          id: "OPS-02",
+          workstream: "Operations & BAU",
+          name: "Global Training & Documentation",
+          owner: "Project Manager",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "None",
+          start: 8,
+          end: 10,
+          phase: "Ops & BAU",
+          notes: "Preparation of instructional material and core user guides."
+        },
+        {
+          id: "OPS-03",
+          workstream: "Operations & BAU",
+          name: "Hypercare & BAU Handoff",
+          owner: "Project Manager",
+          status: "Not Started",
+          priority: "High",
+          complete: 0,
+          dependencies: "OPS-01",
+          start: 9,
+          end: 10,
+          phase: "Ops & BAU",
+          notes: "Transitioning operations to regional run teams."
+        }
+      ]);
+
+      const [milestones, setMilestones] = useState([
+        {
+          id: "M1",
+          title: "Project Mobilization & Sign-off",
+          timeline: "May 2026 - Jun 2026",
+          status: "In Progress",
+          targetRate: 45,
+          workstreams: ["Project Management"]
+        },
+        {
+          id: "M2",
+          title: "Requirements & Core Handoff",
+          timeline: "Jun 2026 - Jul 2026",
+          status: "In Progress",
+          targetRate: 20,
+          workstreams: ["Architecture & Req"]
+        },
+        {
+          id: "M3",
+          title: "Technical Integrations & Setup",
+          timeline: "Jul 2026 - Sep 2026",
+          status: "Not Started",
+          targetRate: 0,
+          workstreams: ["Integrations Setup"]
+        },
+        {
+          id: "M4",
+          title: "Launch Waves (Mass Deploys)",
+          timeline: "Nov 2026 - Jan 2027",
+          status: "Not Started",
+          targetRate: 0,
+          workstreams: ["Use Case Deploys"]
+        },
+        {
+          id: "M5",
+          title: "Hypercare & BAU Transition",
+          timeline: "Dec 2026 - Feb 2027",
+          status: "Not Started",
+          targetRate: 0,
+          workstreams: ["Operations & BAU"]
+        }
+      ]);
+
+      const [risks, setRisks] = useState([
+        {
+          id: "R-01",
+          title: "MECE System availability delayed until Q4 2026",
+          severity: "CRITICAL",
+          mitigation: "Deploy Post-Event survey as a manual pipeline for launch window. Safeguard other streams.",
+          owner: "Ecosystem PO",
+          status: "Active"
+        },
+        {
+          id: "R-02",
+          title: "Data Master (RDI) feed structure misalignment",
+          severity: "HIGH",
+          mitigation: "90-minute alignment workshop scheduled with Balaji for the week of May 18.",
+          owner: "IT Lead",
+          status: "Mitigated"
+        },
+        {
+          id: "R-03",
+          title: "Requirements definition latency with global stakeholders",
+          severity: "MEDIUM",
+          mitigation: "Execute concurrent infrastructure setup (SSO & setup) alongside requirements workshops.",
+          owner: "Project Manager",
+          status: "Active"
+        }
+      ]);
+
+      const [activeTab, setActiveTab] = useState('board');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedWorkstream, setSelectedWorkstream] = useState('All');
+      const [selectedStatus, setSelectedStatus] = useState('All');
+      const [selectedPriority, setSelectedPriority] = useState('All');
+
+      const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+      const [editingTask, setEditingTask] = useState(null);
+      const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+      const stats = useMemo(() => {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.status === 'Complete').length;
+        const inProgress = tasks.filter(t => t.status === 'In Progress').length;
+        const blocked = tasks.filter(t => t.status === 'Blocked').length;
+        const notStarted = tasks.filter(t => t.status === 'Not Started').length;
+        const critical = tasks.filter(t => t.priority === 'Critical').length;
+        
+        const avgCompletion = Math.round(
+          tasks.reduce((sum, task) => sum + task.complete, 0) / total
+        );
+
+        return { total, completed, inProgress, blocked, notStarted, critical, avgCompletion };
+      }, [tasks]);
+
+      const workstreamsList = ['All', 'Project Management', 'Architecture & Req', 'Integrations Setup', 'Use Case Deploys', 'Operations & BAU'];
+      const statusesList = ['All', 'Not Started', 'In Progress', 'Blocked', 'Complete'];
+      const prioritiesList = ['All', 'Critical', 'High', 'Medium', 'Low'];
+
+      const filteredTasks = useMemo(() => {
+        return tasks.filter(task => {
+          const matchSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              task.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              task.owner.toLowerCase().includes(searchQuery.toLowerCase());
+          const matchWorkstream = selectedWorkstream === 'All' || task.workstream === selectedWorkstream;
+          const matchStatus = selectedStatus === 'All' || task.status === selectedStatus;
+          const matchPriority = selectedPriority === 'All' || task.priority === selectedPriority;
+
+          return matchSearch && matchWorkstream && matchStatus && matchPriority;
+        });
+      }, [tasks, searchQuery, selectedWorkstream, selectedStatus, selectedPriority]);
+
+      const handleEditTaskClick = (task) => {
+        setEditingTask({ ...task });
+        setIsTaskModalOpen(true);
+      };
+
+      const handleCreateTaskClick = () => {
+        setEditingTask({
+          id: `NEW-${tasks.length + 1}`,
+          workstream: "Use Case Deploys",
+          name: "",
+          owner: "",
+          status: "Not Started",
+          priority: "Medium",
+          complete: 0,
+          dependencies: "None",
+          start: 1,
+          end: 2,
+          phase: "Transactional",
+          notes: ""
+        });
+        setIsTaskModalOpen(true);
+      };
+
+      const handleSaveTask = (e) => {
+        e.preventDefault();
+        if (!editingTask.name || !editingTask.owner) {
+          alert("Please populate the Task Name and Assignee.");
+          return;
+        }
+
+        if (tasks.some(t => t.id === editingTask.id)) {
+          setTasks(tasks.map(t => t.id === editingTask.id ? editingTask : t));
+        } else {
+          setTasks([...tasks, editingTask]);
+        }
+        setIsTaskModalOpen(false);
+        setEditingTask(null);
+      };
+
+      const handleDeleteTask = (id) => {
+        if (confirm(`Are you sure you want to delete task ${id}?`)) {
+          setTasks(tasks.filter(t => t.id !== id));
+        }
+      };
+
+      const handleToggleRiskStatus = (riskId) => {
+        setRisks(risks.map(r => {
+          if (r.id === riskId) {
+            return { ...r, status: r.status === "Active" ? "Mitigated" : "Active" };
+          }
+          return r;
+        }));
+      };
+
+      const generateCSVData = () => {
+        let csv = "Task ID,Workstream,Task Name,Owner,Status,Priority,% Complete,Dependencies,Planned Start,Planned End,Phase,Notes\n";
+        tasks.forEach(t => {
+          csv += `"${t.id}","${t.workstream}","${t.name}","${t.owner}","${t.status}","${t.priority}",${t.complete},"${t.dependencies}","${months[t.start]}","${months[t.end]}","${t.phase}","${t.notes || ''}"\n`;
+        });
+        return csv;
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col antialiased">
+          {/* Header Bar */}
+          <header className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md border-b border-indigo-500/20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                      PMO CONTROL CENTER
+                    </span>
+                    <span className="text-xs text-slate-400">v1.4 Live Tracking</span>
+                  </div>
+                  <h1 className="text-2xl font-bold tracking-tight mt-1 text-slate-100">
+                    Core & Common VOC Implementation Roadmap
+                  </h1>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Real-time governance dashboard aligning board requirements and IT milestones.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2 text-right">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Current Reporting Period</div>
+                    <div className="text-sm font-bold text-indigo-300 flex items-center gap-1.5 justify-end">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                      May 18, 2026
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsExportModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-sm font-semibold shadow transition-all duration-150"
+                  >
+                    <Icon name="download" className="w-4 h-4" />
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Stats Rollup */}
+          <section className="bg-white border-b border-slate-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Overall Progress</span>
+                  <div className="flex items-end justify-between mt-2">
+                    <span className="text-2xl font-extrabold text-slate-900">{stats.avgCompletion}%</span>
+                    <span className="text-xs text-indigo-600 font-bold">Aggregate</span>
+                  </div>
+                  <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" style={{ width: `${stats.avgCompletion}%` }}></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Stream Tasks</span>
+                  <div className="flex items-end justify-between mt-2">
+                    <span className="text-2xl font-extrabold text-slate-900">{stats.total}</span>
+                    <span className="text-xs text-slate-500">Total Registered</span>
+                  </div>
+                  <div className="flex gap-1.5 mt-2.5">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">{stats.completed} Done</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">{stats.inProgress} Active</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">{stats.notStarted} Open</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Blocked Deliverables</span>
+                  <div className="flex items-end justify-between mt-2">
+                    <span className={`text-2xl font-extrabold ${stats.blocked > 0 ? 'text-rose-600' : 'text-slate-900'}`}>{stats.blocked}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-bold ${stats.blocked > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-600'}`}>
+                      {stats.blocked > 0 ? 'Action Required' : 'No Blockers'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2 truncate">Post-Event MECE system lockout.</p>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 shadow-sm flex flex-col justify-between col-span-2 md:col-span-2">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steering Health Check</span>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="bg-amber-50 rounded border border-amber-200 px-2 py-1 text-center">
+                      <div className="text-[10px] font-semibold text-amber-800">SCHEDULE</div>
+                      <div className="text-xs font-bold text-amber-600">AMBER</div>
+                    </div>
+                    <div className="bg-emerald-50 rounded border border-emerald-200 px-2 py-1 text-center">
+                      <div className="text-[10px] font-semibold text-emerald-800">SCOPE</div>
+                      <div className="text-xs font-bold text-emerald-600">GREEN</div>
+                    </div>
+                    <div className="bg-emerald-50 rounded border border-emerald-200 px-2 py-1 text-center">
+                      <div className="text-[10px] font-semibold text-emerald-800">RESOURCES</div>
+                      <div className="text-xs font-bold text-emerald-600">GREEN</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Navigation */}
+          <section className="bg-slate-100 border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 sticky top-0 z-10 shadow-sm">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex p-1 bg-slate-200 rounded-lg inline-flex self-start md:self-auto shadow-inner">
+                <button
+                  onClick={() => setActiveTab('board')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                    activeTab === 'board' ? 'bg-white text-indigo-950 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+                  }`}
+                >
+                  <Icon name="dashboard" className="w-4 h-4" />
+                  Executive Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('workplan')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                    activeTab === 'workplan' ? 'bg-white text-indigo-950 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+                  }`}
+                >
+                  <Icon name="list" className="w-4 h-4" />
+                  IT Sprint Workplan
+                </button>
+                <button
+                  onClick={() => setActiveTab('gantt')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                    activeTab === 'gantt' ? 'bg-white text-indigo-950 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+                  }`}
+                >
+                  <Icon name="calendar" className="w-4 h-4" />
+                  Gantt Chart Timeline
+                </button>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search tasks, IDs, owners..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full md:w-56 pl-3 pr-8 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">×</button>
+                  )}
+                </div>
+
+                <select
+                  value={selectedWorkstream}
+                  onChange={(e) => setSelectedWorkstream(e.target.value)}
+                  className="bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 px-2.5 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {workstreamsList.map(ws => (
+                    <option key={ws} value={ws}>{ws === 'All' ? 'All Workstreams' : ws}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 px-2.5 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {statusesList.map(st => (
+                    <option key={st} value={st}>{st === 'All' ? 'All Statuses' : st}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 px-2.5 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {prioritiesList.map(p => (
+                    <option key={p} value={p}>{p === 'All' ? 'All Priorities' : p}</option>
+                  ))}
+                </select>
+
+                {(searchQuery || selectedWorkstream !== 'All' || selectedStatus !== 'All' || selectedPriority !== 'All') && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedWorkstream('All');
+                      setSelectedStatus('All');
+                      setSelectedPriority('All');
+                    }}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-bold px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded border border-indigo-200 transition"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Core App Container */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            {/* Dashboard View */}
+            {activeTab === 'board' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* Milestones Panel */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                            <Icon name="calendar" className="w-5 h-5" />
+                          </span>
+                          <div>
+                            <h2 className="text-lg font-bold text-slate-900">Strategic Milestone Gateways</h2>
+                            <p className="text-xs text-slate-500">Board-level baseline alignment check</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                          5 Major Phases
+                        </span>
+                      </div>
+
+                      <div className="space-y-4">
+                        {milestones.map((ms, index) => {
+                          const subtasks = tasks.filter(t => ms.workstreams.includes(t.workstream));
+                          const subtaskAvg = subtasks.length > 0 
+                            ? Math.round(subtasks.reduce((sum, t) => sum + t.complete, 0) / subtasks.length)
+                            : 0;
+
+                          let statusBadge = 'bg-slate-100 text-slate-600';
+                          if (subtaskAvg === 100) statusBadge = 'bg-emerald-100 text-emerald-800';
+                          else if (subtaskAvg > 0) statusBadge = 'bg-blue-100 text-blue-800';
+
+                          return (
+                            <div key={ms.id} className="relative p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-slate-50 transition-all duration-150">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold">
+                                    {index + 1}
+                                  </span>
+                                  <h3 className="text-sm font-bold text-slate-900">{ms.title}</h3>
+                                </div>
+                                <div className="flex items-center gap-2 self-start sm:self-auto">
+                                  <span className="text-xs text-slate-400 font-medium">{ms.timeline}</span>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${statusBadge}`}>
+                                    {subtaskAvg === 100 ? 'Completed' : subtaskAvg > 0 ? 'In Progress' : 'Planned'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
+                                  <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-2 rounded-full transition-all duration-300" style={{ width: `${subtaskAvg}%` }}></div>
+                                </div>
+                                <span className="text-xs font-bold text-slate-700 w-8 text-right">{subtaskAvg}%</span>
+                              </div>
+
+                              <div className="flex justify-between items-center mt-2 text-[10px] text-slate-400">
+                                <span>Mapped Workstreams: {ms.workstreams.join(', ')}</span>
+                                <span>{subtasks.length} associated subtasks</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Risks Panel */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                        <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                          <Icon name="info" className="w-5 h-5" />
+                        </span>
+                        <div>
+                          <h2 className="text-lg font-bold text-slate-900">Program Risk Exposure</h2>
+                          <p className="text-xs text-slate-500">Board governance & intervention status</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                          <h3 className="text-xs font-extrabold text-amber-800 tracking-wider uppercase mb-1">
+                            Schedule Constraint Impact (Amber status)
+                          </h3>
+                          <p className="text-xs text-amber-900/80 leading-relaxed font-medium">
+                            The Post-Event survey deployment has a direct interdependency on the external MECE system platform, which is locked out for configuration changes until Q4 2026. This restricts automated enablement until then.
+                          </p>
+                        </div>
+
+                        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                          <h3 className="text-xs font-extrabold text-emerald-800 tracking-wider uppercase mb-1">
+                            Active Scope & Budget Guardrails (Green status)
+                          </h3>
+                          <p className="text-xs text-emerald-900/80 leading-relaxed font-medium">
+                            Migration boundaries are restricted strictly to core systems and the 7 base use cases specified. No cost-expansion items or supplementary platform provisions are approved under Phase I.
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span>
+                            <span className="text-xs font-bold text-slate-800">Resource Sign-off</span>
+                          </div>
+                          <span className="text-xs font-bold text-slate-500">Accenture & Qualtrics complete</span>
+                        </div>
+
+                        <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span>
+                            <span className="text-xs font-bold text-slate-800">Integrations Framework</span>
+                          </div>
+                          <span className="text-xs font-bold text-slate-500">SSO mapped securely</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Risk Register Grid */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1.5 rounded-lg bg-rose-50 text-rose-600">
+                        <Icon name="warning" className="w-5 h-5" />
+                      </span>
+                      <div>
+                        <h2 className="text-lg font-bold text-slate-900">Program Risk & Escalation Register</h2>
+                        <p className="text-xs text-slate-500">Mitigation tracking and active interventions</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {risks.map(risk => {
+                      const isMitigated = risk.status === "Mitigated";
+                      return (
+                        <div 
+                          key={risk.id} 
+                          className={`p-4 rounded-xl border transition-all duration-200 ${
+                            isMitigated 
+                              ? 'border-emerald-200 bg-emerald-50/20 opacity-85' 
+                              : risk.severity === 'CRITICAL'
+                                ? 'border-rose-200 bg-rose-50/20'
+                                : risk.severity === 'HIGH'
+                                  ? 'border-orange-200 bg-orange-50/20'
+                                  : 'border-slate-200 bg-slate-50/50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              risk.severity === 'CRITICAL' 
+                                ? 'bg-rose-100 text-rose-800 border border-rose-200' 
+                                : risk.severity === 'HIGH'
+                                  ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                                  : 'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {risk.severity} Severity
+                            </span>
+                            <button
+                              onClick={() => handleToggleRiskStatus(risk.id)}
+                              className={`text-xs font-semibold px-2 py-0.5 rounded border transition-all ${
+                                isMitigated ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-300'
+                              }`}
+                            >
+                              {isMitigated ? '✓ Resolved' : 'Mark Resolved'}
+                            </button>
+                          </div>
+
+                          <h3 className={`text-sm font-bold mt-1 ${isMitigated ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+                            {risk.title}
+                          </h3>
+                          
+                          <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                            <span className="font-bold text-slate-700">Mitigation:</span> {risk.mitigation}
+                          </p>
+
+                          <div className="flex items-center justify-between mt-4 pt-2 border-t border-slate-200/50 text-[10px] text-slate-500 font-medium">
+                            <span>Risk ID: {risk.id}</span>
+                            <span>Owner: {risk.owner}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* List Tracker View */}
+            {activeTab === 'workplan' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-sm font-bold text-indigo-950 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+                        Operational Deliverables ({filteredTasks.length} items found)
+                      </h2>
+                      <p className="text-xs text-slate-500">Manage individual tasks, assignees, and implementation lifecycles.</p>
+                    </div>
+                    <button
+                      onClick={handleCreateTaskClick}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow transition"
+                    >
+                      <Icon name="plus" className="w-3.5 h-3.5" />
+                      Add Task Item
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 text-left">
+                      <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-600 tracking-wider">
+                        <tr>
+                          <th className="px-4 py-3">Task ID</th>
+                          <th className="px-4 py-3">Workstream</th>
+                          <th className="px-4 py-3">Task Deliverable</th>
+                          <th className="px-4 py-3">Assignee</th>
+                          <th className="px-4 py-3 text-center">Status</th>
+                          <th className="px-4 py-3 text-center">Priority</th>
+                          <th className="px-4 py-3 text-center">Progress</th>
+                          <th className="px-4 py-3">Dependencies</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 bg-white text-xs text-slate-700">
+                        {filteredTasks.length === 0 ? (
+                          <tr>
+                            <td colSpan="9" className="text-center py-8 text-slate-400 font-medium">
+                              No deliverables match the specified filters. Try clearing your options above.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredTasks.map(task => {
+                            let statusColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                            if (task.status === 'Complete') statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                            else if (task.status === 'In Progress') statusColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                            else if (task.status === 'Blocked') statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
+
+                            let priorityColor = 'bg-slate-100 text-slate-600';
+                            if (task.priority === 'Critical') priorityColor = 'bg-rose-100 text-rose-800 font-extrabold';
+                            else if (task.priority === 'High') priorityColor = 'bg-orange-100 text-orange-800';
+                            else if (task.priority === 'Medium') priorityColor = 'bg-amber-100 text-amber-800';
+
+                            return (
+                              <tr key={task.id} className="hover:bg-slate-50/50 transition">
+                                <td className="px-4 py-3.5 font-bold text-slate-900">{task.id}</td>
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                    {task.workstream}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3.5 max-w-xs md:max-w-md">
+                                  <div className="font-bold text-slate-900 truncate" title={task.name}>{task.name}</div>
+                                  {task.notes && <p className="text-[10px] text-slate-500 mt-0.5 truncate">{task.notes}</p>}
+                                </td>
+                                <td className="px-4 py-3.5 whitespace-nowrap font-medium text-slate-800 flex items-center gap-1.5">
+                                  <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[9px] font-extrabold">
+                                    {task.owner.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  {task.owner}
+                                </td>
+                                <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                  <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase border ${statusColor}`}>
+                                    {task.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${priorityColor}`}>
+                                    {task.priority}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <span className="font-bold text-slate-900 w-8">{task.complete}%</span>
+                                    <div className="w-12 bg-slate-200 h-1 rounded-full overflow-hidden">
+                                      <div className="bg-indigo-600 h-1 rounded-full" style={{ width: `${task.complete}%` }}></div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3.5 text-slate-500 font-mono text-[10px]">{task.dependencies}</td>
+                                <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => handleEditTaskClick(task)}
+                                      className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded transition"
+                                    >
+                                      <Icon name="edit" className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteTask(task.id)}
+                                      className="p-1 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded transition"
+                                    >
+                                      <Icon name="trash" className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Gantt View */}
+            {activeTab === 'gantt' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 overflow-hidden">
+                  <div className="mb-4 border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-sm font-bold text-indigo-950 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+                        16-Month Interactive Gantt Matrix (Columns P to AE)
+                      </h2>
+                      <p className="text-xs text-slate-500">Visual mapping across full delivery phases from April 2026 to July 2027.</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 rounded bg-emerald-500"></span> Complete
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 rounded bg-indigo-600"></span> In Progress
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 rounded bg-rose-500 animate-pulse"></span> Blocked
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 rounded bg-slate-300"></span> Planned
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-200 rounded-xl max-w-full">
+                    <div className="min-w-[1200px] divide-y divide-slate-100 bg-white">
+                      
+                      {/* Timeline Header */}
+                      <div className="grid grid-cols-[220px_1fr] bg-slate-50/80 font-bold text-[10px] text-slate-600 uppercase tracking-wider text-center sticky top-0 border-b border-slate-200">
+                        <div className="px-4 py-3 text-left border-r border-slate-200">Task Deliverable</div>
+                        <div className="grid grid-cols-16 divide-x divide-slate-200">
+                          {months.map((m, idx) => {
+                            const isCurrent = idx === currentMonthIndex;
+                            return (
+                              <div 
+                                key={m} 
+                                className={`py-3 relative flex flex-col justify-center items-center ${
+                                  isCurrent ? 'bg-indigo-50 font-black text-indigo-700 border-x-2 border-indigo-400' : ''
+                                }`}
+                              >
+                                {m}
+                                {isCurrent && (
+                                  <span className="absolute bottom-0.5 text-[8px] bg-indigo-600 text-white px-1.5 rounded font-bold uppercase scale-90">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Timeline Bars */}
+                      {filteredTasks.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 font-semibold">
+                          No tasks found. Reset filter selections to view Gantt mapping.
+                        </div>
+                      ) : (
+                        filteredTasks.map(task => {
+                          let barTheme = 'bg-slate-300 hover:bg-slate-400 text-slate-700';
+                          if (task.status === 'Complete') {
+                            barTheme = 'bg-emerald-500 hover:bg-emerald-600 text-white';
+                          } else if (task.status === 'In Progress') {
+                            barTheme = 'bg-indigo-600 hover:bg-indigo-700 text-white';
+                          } else if (task.status === 'Blocked') {
+                            barTheme = 'bg-rose-500 hover:bg-rose-600 text-white animate-pulse';
+                          }
+
+                          return (
+                            <div key={task.id} className="grid grid-cols-[220px_1fr] items-center hover:bg-slate-50/40 transition duration-150 py-1.5">
+                              <div className="px-4 pr-2 text-left border-r border-slate-200 truncate">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-slate-900">{task.id}</span>
+                                  <span className="text-[10px] font-semibold text-slate-500 truncate" title={task.name}>
+                                    {task.name}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5 text-[8px] text-slate-400 font-medium">
+                                  <span className="bg-slate-100 text-slate-600 px-1 py-0.5 rounded uppercase">{task.phase}</span>
+                                  <span>{task.complete}%</span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-16 h-8 relative divide-x divide-slate-100">
+                                <div className="col-start-2 col-span-1 h-full bg-indigo-50/20 pointer-events-none z-0 absolute top-0 bottom-0 left-0 right-0"></div>
+
+                                <div 
+                                  className="relative h-6 rounded-lg shadow-sm font-bold text-[10px] flex items-center justify-between px-2 cursor-pointer z-10 select-none overflow-hidden transition-all"
+                                  style={{
+                                    gridColumnStart: task.start + 1,
+                                    gridColumnEnd: task.end + 2
+                                  }}
+                                  onClick={() => handleEditTaskClick(task)}
+                                >
+                                  <div className={`absolute top-0 bottom-0 left-0 ${barTheme}`} style={{ width: `${task.complete}%`, opacity: 0.95 }}></div>
+                                  <span className="z-10 text-white font-extrabold truncate drop-shadow-sm flex items-center gap-1 px-1 py-0.5">
+                                    {task.complete === 100 && '✓'} {task.name}
+                                  </span>
+                                  <span className="z-10 text-white font-black drop-shadow-sm pr-1 bg-slate-900/10 px-1.5 rounded-full scale-90">
+                                    {task.complete}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </main>
+
+          {/* Edit Task Modal */}
+          {isTaskModalOpen && editingTask && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up">
+                <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold">Edit Implementation Deliverable</h3>
+                    <p className="text-xs text-indigo-200">Refine task configuration parameters and milestones</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setIsTaskModalOpen(false)}
+                    className="text-slate-300 hover:text-white font-bold text-xl p-1 bg-white/10 hover:bg-white/25 rounded-full w-8 h-8 flex items-center justify-center transition"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveTask} className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Task ID</label>
+                      <input
+                        type="text"
+                        disabled
+                        value={editingTask.id}
+                        className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-xs font-mono font-bold text-slate-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Workstream</label>
+                      <select
+                        value={editingTask.workstream}
+                        onChange={(e) => setEditingTask({ ...editingTask, workstream: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {workstreamsList.filter(ws => ws !== 'All').map(ws => (
+                          <option key={ws} value={ws}>{ws}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Task Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingTask.name}
+                      onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Assignee Owner</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingTask.owner}
+                        onChange={(e) => setEditingTask({ ...editingTask, owner: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Prerequisites / Dependencies</label>
+                      <input
+                        type="text"
+                        value={editingTask.dependencies}
+                        onChange={(e) => setEditingTask({ ...editingTask, dependencies: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Status</label>
+                      <select
+                        value={editingTask.status}
+                        onChange={(e) => setEditingTask({ 
+                          ...editingTask, 
+                          status: e.target.value,
+                          complete: e.target.value === 'Complete' ? 100 : editingTask.complete 
+                        })}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {statusesList.filter(s => s !== 'All').map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Priority</label>
+                      <select
+                        value={editingTask.priority}
+                        onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {prioritiesList.filter(p => p !== 'All').map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Completion %</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editingTask.complete}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          setEditingTask({ 
+                            ...editingTask, 
+                            complete: Math.min(100, Math.max(0, val)),
+                            status: val === 100 ? 'Complete' : editingTask.status === 'Complete' ? 'In Progress' : editingTask.status
+                          });
+                        }}
+                        className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="block text-xs font-bold text-slate-800 uppercase mb-2">Timeline Duration (April '26 - July '27)</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] text-slate-500 font-semibold uppercase">Start Month</label>
+                        <select
+                          value={editingTask.start}
+                          onChange={(e) => setEditingTask({ ...editingTask, start: parseInt(e.target.value) })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold text-slate-700"
+                        >
+                          {months.map((m, idx) => (
+                            <option key={m} value={idx}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500 font-semibold uppercase">End Month</label>
+                        <select
+                          value={editingTask.end}
+                          onChange={(e) => setEditingTask({ ...editingTask, end: Math.max(editingTask.start, parseInt(e.target.value)) })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold text-slate-700"
+                        >
+                          {months.map((m, idx) => (
+                            <option key={m} value={idx} disabled={idx < editingTask.start}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Progress Notes / Roadblocks</label>
+                    <textarea
+                      value={editingTask.notes || ""}
+                      onChange={(e) => setEditingTask({ ...editingTask, notes: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-700"
+                      rows="2"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsTaskModalOpen(false)}
+                      className="px-4 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow"
+                    >
+                      Save Deliverable
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Export Modal */}
+          {isExportModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-slide-up">
+                <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold">Export Roadmap to CSV</h3>
+                    <p className="text-xs text-indigo-200">Copy implementation spreadsheet config below</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setIsExportModalOpen(false)}
+                    className="text-slate-300 hover:text-white font-bold text-xl p-1 bg-white/10 hover:bg-white/25 rounded-full w-8 h-8 flex items-center justify-center transition"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Copy the raw comma-separated values (CSV) below and paste them into a spreadsheet editor (such as Microsoft Excel or Google Sheets) to save progress externally.
+                  </p>
+                  
+                  <textarea
+                    readOnly
+                    value={generateCSVData()}
+                    className="w-full h-64 bg-slate-50 border border-slate-300 rounded-lg p-3 font-mono text-[10px] text-slate-700 focus:outline-none"
+                    onClick={(e) => e.target.select()}
+                  />
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-semibold">Click inside the text block to select all values</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        document.execCommand('copy');
+                        alert("Data copied to clipboard!");
+                      }}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow transition"
+                    >
+                      Copy Raw Text
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Safely boot the React application using standard UMD mounting rules
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
     root.render(<App />);
   </script>
 </body>
